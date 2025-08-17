@@ -70,6 +70,24 @@ p {
     line-height: 1.5;
 }
 
+/* Stoppage time display */
+.stoppage-time {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.stoppage-time .icon {
+    font-size: 1rem;
+}
+
 /* Category select styling */
 .category-select {
     color: var(--text-light) !important;
@@ -506,4 +524,21 @@ input:focus, select:focus {
         padding: 10px;
         min-height: 60px;
     }
+    
+    .stoppage-time {
+        top: 10px;
+        right: 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Stoppage time animation */
+@keyframes timeAdded {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.time-added {
+    animation: timeAdded 0.5s;
 }
