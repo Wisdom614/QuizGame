@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz Battle</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="main-menu" class="screen">
+        <h1>Quiz Battle</h1>
+        <p>Test your knowledge against the clock!</p>
+        
+        <div class="menu-options">
+            <button id="single-player" class="menu-btn">Single Player</button>
+            <button id="vs-ai" class="menu-btn">Battle AI</button>
+            <button id="daily-challenge-btn" class="menu-btn secondary">Daily Challenge</button>
+            <button id="how-to-play" class="menu-btn secondary">How to Play</button>
+            <button id="high-scores-btn" class="menu-btn secondary">High Scores</button>
+        </div>
+    </div>
+    
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen hidden">
+        <h2>Game Setup</h2>
+        <form id="game-setup">
+            <div class="form-group">
+                <label for="player-name">Your Name</label>
+                <input type="text" id="player-name" placeholder="Enter your name" required minlength="2" maxlength="12">
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" required class="category-select">
+                    <option value="9">General Knowledge</option>
+                    <option value="17">Science & Nature</option>
+                    <option value="19">Mathematics</option>
+                    <option value="18">Computers</option>
+                    <option value="21">Sports</option>
+                    <option value="22">Geography</option>
+                    <option value="23">History</option>
+                    <option value="25">Art</option>
+                    <option value="27">Animals</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty" required>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="ai-difficulty-group">
+                <label for="ai-difficulty">AI Difficulty</label>
+                <select id="ai-difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="menu-btn">Start Battle</button>
+        </form>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen hidden">
+        <div class="player-header">
+            <div class="player-info">
+                <div class="avatar" id="player-avatar">P</div>
+                <div id="player-name-display">Player</div>
+            </div>
+            
+            <div class="game-controls">
+                <button id="pause-btn" class="control-btn">⏸️</button>
+                <button id="restart-btn" class="control-btn">🔄</button>
+                <button id="stop-btn" class="control-btn">⏹️</button>
+            </div>
+            
+            <div class="streak-indicator" id="streak-indicator" style="display: none;">
+                <span class="streak-fire">🔥</span>
+                <span id="streak-count">0</span>
+            </div>
+            
+            <div class="score">Score: <span id="score-value">0</span></div>
+        </div>
+        
+        <div class="timer-bar">
+            <div class="timer-progress" id="timer-progress"></div>
+        </div>
+        
+        <div class="question-container">
+            <div class="question-text" id="question-text">Loading question...</div>
+            <div class="options" id="options-container">
+                <button class="option" data-option="1"></button>
+                <button class="option" data-option="2"></button>
+                <button class="option" data-option="3"></button>
+                <button class="option" data-option="4"></button>
+            </div>
+        </div>
+        
+        <div class="lifelines">
+            <button class="lifeline" data-power="5050">
+                ❓
+                <span class="lifeline-tooltip">50/50: Remove two wrong answers</span>
+            </button>
+            <button class="lifeline" data-power="freeze">
+                ⏱️
+                <span class="lifeline-tooltip">Time Freeze: Pause timer for 5 seconds</span>
+            </button>
+            <button class="lifeline" data-power="double">
+                🔥
+                <span class="lifeline-tooltip">Double Points: Next correct answer is worth double</span>
+            </button>
+            <button class="lifeline" data-power="skip">
+                👑
+                <span class="lifeline-tooltip">Skip: Skip this question without penalty</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div id="game-over" class="screen hidden">
+        <h2>Game Over!</h2>
+        <div class="result" id="result-message"></div>
+        <div class="final-score" id="final-score">0</div>
+        
+        <h3>High Scores</h3>
+        <div class="high-scores" id="high-scores-list"></div>
+        
+        <button id="play-again" class="menu-btn">Play Again</button>
+        <button id="main-menu-btn" class="menu-btn secondary">Main Menu</button>
+    </div>
+    
+    <!-- Daily Challenge Screen -->
+    <div id="daily-challenge-screen" class="screen hidden">
+        <h2>Daily Challenge</h2>
+        
+        <div class="daily-challenge">
+            <div class="icon">🔥</div>
+            <div class="info">
+                <h4>Today's Special</h4>
+                <p>Answer 10 questions correctly to earn bonus points! Resets in <span id="reset-timer">23:59</span></p>
+            </div>
+        </div>
+        
+        <p>Complete the daily challenge to earn a place on the leaderboard!</p>
+        
+        <button id="start-daily-challenge" class="menu-btn">Start Challenge</button>
+        <button id="back-to-menu" class="menu-btn secondary">Back to Menu</button>
+    </div>
+    
+    <!-- Tutorial Screen -->
+    <div id="tutorial-screen" class="screen hidden">
+        <h2>How to Play</h2>
+        
+        <div class="tutorial-content">
+            <div class="tutorial-step">
+                <h3><span class="icon">🎯</span> Game Objective</h3>
+                <p>Answer as many questions correctly as possible before time runs out. Earn more points for quick answers and streaks!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3><span class="icon">⏱️</span> Timer</h3>
+                <p>Each question has a time limit. The faster you answer, the more points you earn. Watch the timer bar at the top!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3><span class="icon">✨</span> Lifelines</h3>
+                <p>Use your special powers when you're stuck:
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><strong>50/50</strong>: Remove two wrong answers</li>
+                        <li><strong>Time Freeze</strong>: Pause timer for 5 seconds</li>
+                        <li><strong>Double Points</strong>: Next correct answer is worth double</li>
+                        <li><strong>Skip</strong>: Skip this question without penalty</li>
+                    </ul>
+                </p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3><span class="icon">🔥</span> Streaks</h3>
+                <p>Answering multiple questions correctly in a row builds your streak and earns bonus points!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3><span class="icon">⏯️</span> Game Controls</h3>
+                <p>Use these controls during the game:
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><strong>Pause (⏸️)</strong>: Temporarily stop the timer</li>
+                        <li><strong>Restart (🔄)</strong>: Start the current question over</li>
+                        <li><strong>Stop (⏹️)</strong>: End the current game</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+        
+        <div class="tutorial-nav">
+            <button id="skip-tutorial" class="menu-btn secondary">Skip</button>
+            <button id="start-playing" class="menu-btn">Start Playing</button>
+        </div>
+    </div>
+    
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="hidden"></canvas>
+    
+    <!-- Help Button -->
+    <button class="help-btn" id="help-btn">?</button>
+    
+    <script src="script.js"></script>
+</body>
+</html>
