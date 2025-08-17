@@ -39,7 +39,9 @@ const elements = {
     finalScore: document.getElementById('final-score'),
     highScoresList: document.getElementById('high-scores-list'),
     resetTimer: document.getElementById('reset-timer'),
-    confettiCanvas: document.getElementById('confetti-canvas')
+    confettiCanvas: document.getElementById('confetti-canvas'),
+    stoppageTimeDisplay: document.getElementById('stoppage-time-value'),
+    stoppageTimeContainer: document.getElementById('stoppage-time')
 };
 
 // Game state
@@ -103,7 +105,12 @@ const gameState = {
     tutorial: {
         active: false,
         step: 0
-    }
+    },
+    // Stoppage time properties
+    stoppageTime: 0,
+    maxStoppageTime: 30,
+    baseTimePerQuestion: 15,
+    questionStartTime: 0
 };
 
 // Sample questions with correct values (positions will be randomized)
@@ -327,6 +334,7 @@ async function startGame() {
     
     // Set timer based on difficulty
     gameState.totalTime = difficulty === 'hard' ? 10 : difficulty === 'medium' ? 15 : 20;
+    gameState.baseTimePerQuestion = gameState.totalTime;
     
     // Load questions
     gameState.questions = await loadQuestions(category, difficulty);
@@ -353,6 +361,7 @@ async function startDailyChallenge() {
     
     // Set fixed parameters for daily challenge
     gameState.totalTime = 15;
+    gameState.baseTimePerQuestion = gameState.totalTime;
     
     // Check if we already have daily questions
     if (gameState.dailyChallenge.date === new Date().toDateString() && 
@@ -523,6 +532,9 @@ function startTimer() {
     gameState.isPaused = false;
     elements.buttons.pauseBtn.textContent = '⏸️';
     
+    // Track when the question was displayed for stoppage time calculation
+    gameState.questionStartTime = Date.now();
+    
     clearInterval(gameState.timer);
     gameState.timer = setInterval(() => {
         if (!gameState.isPaused) {
@@ -569,6 +581,26 @@ function timeUp() {
 function selectAnswer(selectedOption) {
     clearInterval(gameState.timer);
     disableAllOptions();
+    
+    // Calculate time taken and potential stoppage time
+    const timeTaken = (Date.now() - gameState.questionStartTime) / 1000;
+    const timeSaved = gameState.baseTimePerQuestion - timeTaken;
+    
+    // Add to stoppage time (capped at max)
+    if (timeSaved > 0) {
+        const timeToAdd = Math.floor(timeSaved);
+        gameState.stoppageTime = Math.min(
+            gameState.stoppageTime + timeToAdd,
+            gameState.maxStoppageTime
+        );
+        
+        // Update display with animation
+        elements.stoppageTimeDisplay.textContent = `${gameState.stoppageTime}s`;
+        elements.stoppageTimeContainer.classList.add('time-added');
+        setTimeout(() => {
+            elements.stoppageTimeContainer.classList.remove('time-added');
+        }, 500);
+    }
     
     const selectedIndex = parseInt(selectedOption.dataset.option) - 1;
     const correctAnswer = gameState.questions[gameState.currentQuestion].correctAnswer;
@@ -709,6 +741,20 @@ function aiAnswer() {
 
 function endGame() {
     clearInterval(gameState.timer);
+    
+    // Apply stoppage time if in single player mode
+    if (gameState.mode === 'single' && gameState.stoppageTime > 0) {
+        // Add bonus points for unused stoppage time
+        const bonusPoints = gameState.stoppageTime * 10;
+        gameState.player.score += bonusPoints;
+        
+        // Show stoppage time bonus
+        elements.resultMessage.innerHTML = `
+            <p>Stoppage Time Bonus: +${gameState.stoppageTime}s (${bonusPoints} points)</p>
+            ${elements.resultMessage.innerHTML}
+        `;
+    }
+    
     showGameOverScreen();
     
     // Show confetti if score is high
@@ -805,8 +851,12 @@ function resetGameState() {
     gameState.player.correctAnswers = 0;
     gameState.currentQuestion = 0;
     gameState.timeLeft = 0;
+    gameState.stoppageTime = 0;
     gameState.doublePointsActive = false;
     gameState.usedQuestionIndices.clear();
+    
+    // Reset display
+    elements.stoppageTimeDisplay.textContent = '0s';
     
     // Reset lifelines
     Object.keys(gameState.lifelines).forEach(key => {
@@ -851,7 +901,7 @@ function showTutorialTip() {
             position: "top"
         },
         {
-            text: "This is the timer. Answer quickly to earn more points!",
+            text: "This is the timer. Answer quickly to earn stoppage time!",
             element: elements.timerProgress,
             position: "top"
         },
